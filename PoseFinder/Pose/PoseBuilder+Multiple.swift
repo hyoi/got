@@ -9,13 +9,19 @@ The implementation of a multiple-person pose estimation algorithm, based on the 
 import CoreGraphics
 
 extension PoseBuilder {
+
+    /// PoseNetモデルからの出力を使用して構築されたポーズの配列を返します。
     /// Returns an array of poses constructed using the outputs from the PoseNet model.
     var poses: [Pose] {
         var detectedPoses = [Pose]()
+        //最大の信頼度で関節を反復します。ここでは、
+        //候補ルート。それぞれを開始点として使用して、ポーズを組み立てます。
 
         // Iterate through the joints with the greatest confidence, referred to here as
         // candidate roots, using each as a starting point to assemble a pose.
         for candidateRoot in candidateRoots {
+            //の関節の近くにある候補を無視します
+            //同じタイプで、既存のポーズにすでに割り当てられています
             // Ignore any candidates that are in the proximity of joints of the
             // same type and have already been assigned to an existing pose.
             let maxDistance = configuration.matchingJointDistance
@@ -24,7 +30,9 @@ extension PoseBuilder {
             }
 
             var pose = assemblePose(from: candidateRoot)
-
+            //すべての合計を割ってポーズの信頼度を計算します
+            //既存のポーズの重複しないジョイントを合計で
+            //ジョイントの数。
             // Compute the pose's confidence by dividing the sum of all
             // non-overlapping joints, from existing poses, by the total
             // number of joints.
@@ -43,6 +51,8 @@ extension PoseBuilder {
             }
         }
 
+        //ポーズジョイントの位置を元の画像にマッピングします
+        //事前に計算された変換行列。
         // Map the pose joints positions back onto the original image using
         // the pre-computed transformation matrix.
         detectedPoses.forEach { pose in
@@ -50,9 +60,18 @@ extension PoseBuilder {
                 joint.position = joint.position.applying(modelToInputTransformation)
             }
         }
-
+print("ディテクティッドポージズの数",detectedPoses)
         return detectedPoses
     }
+
+    
+    
+    
+    ///ポーズを組み立てるためのルートとして使用される候補ジョイントを返します。
+    ///
+    ///このプロパティは、 `heatmap`配列を検索して、最も信頼できるジョイントを見つけます。
+    ///候補の配列を降順で返します。
+    ///-戻り値：信頼度に基づいて降順の候補関節の配列。
 
     /// Returns candidate joints that are used as roots to assemble poses.
     ///
@@ -88,10 +107,18 @@ extension PoseBuilder {
             }
         }
 
+        //信頼できる順に候補を並べ替えて返します。
         // Sort and return candidates in order of their confidence.
         return candidateRoots.sorted { $0.confidence > $1.confidence }
     }
-
+    ///与えられたポーズの信頼度を計算して返します。
+    ///
+    ///オーバーラップしていないすべてのジョイントの合計を以下から除算することにより、ポーズの信頼度を計算します
+    ///ジョイントの総数による既存のポーズ。
+    /// - パラメーター：
+    ///-ポーズ：信頼度を計算するポーズ。
+    ///-detectedPoses：すでに検出されたポーズの配列。
+    ///-戻り値：指定されたポーズの信頼度。
     /// Calculates and returns the given pose's confidence.
     ///
     /// Calculates the pose's confidence by dividing the sum of all non-overlapping joints, from
@@ -101,12 +128,22 @@ extension PoseBuilder {
     ///     - detectedPoses: An array of poses already detected.
     /// - returns: The given pose's confidence.
     private func confidence(for pose: Pose, detectedPoses: [Pose]) -> Double {
+
         // Find all non-overlapping joints belonging to the existing pose.
         let joints = nonOverlappingJoints(for: pose, detectedPoses: detectedPoses)
-
+        print("joints.mapは、",Double())
+        
         return joints.map { $0.confidence }.reduce(0, +) / Double(Joint.numberOfJoints)
     }
 
+    ///指定されたポーズのすべてのオーバーラップしていないジョイントを返します。
+    ///
+    ///重複しないジョイントは、 `configuration.matchingJointDistance`よりも距離が長いジョイントです
+    ///既存のポーズに属する同じタイプのジョイントから。
+    /// - パラメーター：
+    ///-ポーズ：オーバーラップしていないジョイントを見つけるためのポーズ。
+    ///-detectedPoses：既存のポーズの配列。
+    ///-戻り値： `pose`の重複しないジョイント。
     /// Returns all non-overlapping joints for a given pose.
     ///
     /// Non-overlapping joints are joints that have a distance greater than `configuration.matchingJointDistance`
@@ -136,6 +173,12 @@ extension PoseBuilder {
         }
     }
 
+    ///与えられたセルの周りの最大の信頼度を持つ関節の信頼度を返します。
+        ///
+        /// - パラメーター：
+        ///-jointName：照会されるジョイントの名前。
+        ///-セル：検索する特定のジョイントの座標。
+        ///-戻り値：最大の信頼値。
     /// Returns the confidence of the joint with the greatest confidence around the given cell.
     ///
     /// - parameters:
@@ -143,6 +186,7 @@ extension PoseBuilder {
     ///     - cell: The coordinates of the given joint to search around.
     /// - returns: The greatest confidence value.
     private func greatestConfidence(for jointName: Joint.Name, at cell: PoseNetOutput.Cell) -> Double {
+        //ローカルウィンドウの開始インデックスと終了インデックスを計算します
         // Calculate the start and end indices for the local window.
         let yLowerBound = max(cell.yIndex - configuration.localSearchRadius, 0)
         let yUpperBound = min(cell.yIndex + configuration.localSearchRadius, output.height - 1)
@@ -154,7 +198,7 @@ extension PoseBuilder {
 
         var greatestConfidence = 0.0
 
-        // Scan over the local window in search of the cell with the greatest confidence.
+        //信頼性の高いセルを探すためにローカルウィンドウをスキャンします。        // Scan over the local window in search of the cell with the greatest confidence.
         for yIndex in yWindowIndices {
             for xIndex in xWindowIndices {
                 guard yIndex != cell.yIndex, xIndex != cell.xIndex else {
@@ -166,10 +210,18 @@ extension PoseBuilder {
                 greatestConfidence = max(greatestConfidence, localConfidence)
             }
         }
-
+print("最大の信頼値は、",greatestConfidence)
         return greatestConfidence
     }
 
+    ///与えられた候補ルートジョイントを使用してポーズを組み立てます。
+        ///
+        ///ポーズは、PoseNetモデルによって出力されたディスプレイスメントマップをトラバースして隣接するジョイントを見つけることで組み立てられます。
+        ///最初は候補ルートジョイント。その後、その後のすべての関節が発見されます。
+        ///
+        /// - パラメーター：
+        ///-rootJoint：ルートジョイントへの参照。
+        ///-戻り値：与えられた候補ルートジョイントを使用して組み立てられたポーズ。
     /// Assembles a pose using the given candidate root joint.
     ///
     /// The pose is assembled by traversing the displacement maps output by the PoseNet model to find adjacent joints,
@@ -214,10 +266,23 @@ extension PoseBuilder {
                 }
             }
         }
-
+print("組み立てられたポーズ。",pose)
         return pose
     }
 
+    
+    
+
+    /// `sourceJoint`および関連する` edge`を使用して、指定されたジョイントのプロパティを更新します。
+        ///
+        ///ジョイントのプロパティ（ `cell`、` position`、および `confidence`）は、最初にジョイントの推論によって取得されます
+        /// `sourceJoint`の位置と、
+        ///変位マップ。この位置は、セルインデックスに変換され、関節の信頼度を取得するために使用されます。
+        ///
+        /// - パラメーター：
+        ///-joint：プロパティが更新されるジョイント。
+        ///-sourceJoint：検索元の有効なソースジョイント。
+        ///-エッジ： `joint`と` sourceJoint`の間の関連エッジ。
     /// Update the properties of the given joint using the `sourceJoint` and associated `edge`.
     ///
     /// The properties (`cell`, `position`, and `confidence`) of the joint are obtained by first inferring the joint’s
@@ -275,6 +340,18 @@ extension PoseBuilder {
 // MARK: - Array Extension
 
 private extension Array where Element == Pose {
+    
+    
+    ///指定された候補ジョイントが既存のジョイントと一致するかどうかを示すブール値を返します
+    ///配列のポーズ。
+    ///
+    ///このメソッドは、配列内の各ポーズを反復処理して、候補と同じタイプの既知の関節をチェックし、
+    ///そして、それらの間の距離が `distance`で定義された特定の量よりも小さい場合、` true`を返します。
+    ///
+    /// - パラメーター：
+    ///-候補：候補のジョイント。
+    ///-距離：2つのジョイントがほぼ同じかどうかを決定するために使用されるしきい値。
+    ///-戻り値：候補がいずれかの「ポーズ」の同等の関節と一致する場合は「true」、それ以外の場合は「false」。
     /// Returns a Boolean value that indicates whether the given candidate joint matches an existing joint of
     /// a pose in the array.
     ///

@@ -14,6 +14,7 @@ enum Algorithm: Int {
 }
 
 struct PoseBuilderConfiguration {
+    ///ポーズ内の有効なジョイントの最小値。
     /// The minimum value for valid joints in a pose.
     var jointConfidenceThreshold = 0.1
 

@@ -8,7 +8,7 @@ Implementation details of a structure used to describe a pose.
 import CoreGraphics
 
 struct Pose {
-
+    /// 2つのジョイント間の親子関係を記述するために使用される構造。
     /// A structure used to describe a parent-child relationship between two joints.
     struct Edge {
         let index: Int
@@ -22,6 +22,10 @@ struct Pose {
         }
     }
 
+    ///ジョイント間の接続を定義するために使用されるエッジの配列。
+        ///
+        ///インデックスは、変位マップ内の関連する値にアクセスするために使用されるインデックスに関連しています
+        /// PoseNetモデルによる出力
     /// An array of edges used to define the connections between the joints.
     ///
     /// The index relates to the index used to access the associated value within the displacement maps
@@ -44,7 +48,7 @@ struct Pose {
         Edge(from: .rightHip, to: .rightKnee, index: 14),
         Edge(from: .rightKnee, to: .rightAnkle, index: 15)
     ]
-
+    ///ポーズを構成する関節。
     /// The joints that make up a pose.
     private(set) var joints: [Joint.Name: Joint] = [
         .nose: Joint(name: .nose),
@@ -66,6 +70,7 @@ struct Pose {
         .rightAnkle: Joint(name: .rightAnkle)
     ]
 
+    ///このポーズに関連付けられた信頼スコア。
     /// The confidence score associated with this pose.
     var confidence: Double = 0.0
 
@@ -80,17 +85,27 @@ struct Pose {
         }
     }
 
+    /// ** from **または** to **指定されたジョイントをリンクするすべてのエッジを返します。
+        ///
+        /// - パラメーター：
+        ///-jointName：ジョイント名を照会します。
+        ///-戻り値： `jointName`に接続または接続するすべてのエッジ。
     /// Returns all edges that link **from** or **to** the specified joint.
     ///
     /// - parameters:
-    ///     - jointName: Query joint name.
+    /// - jointName: Query joint name.
     /// - returns: All edges that connect to or from `jointName`.
     static func edges(for jointName: Joint.Name) -> [Edge] {
         return Pose.edges.filter {
             $0.parent == jointName || $0.child == jointName
         }
     }
-
+    ///指定した親と子のジョイント名を持つエッジを返します。
+    ///
+    /// - パラメーター：
+    ///-parentJointName：エッジの親ジョイント名。
+    ///-childJointName：エッジの子ジョイント名。
+    ///-戻り値： `jointName`に接続または接続するすべてのエッジ。
     /// Returns the edge having the specified parent and child  joint names.
     ///
     /// - parameters:
@@ -100,4 +115,5 @@ struct Pose {
     static func edge(from parentJointName: Joint.Name, to childJointName: Joint.Name) -> Edge? {
         return Pose.edges.first(where: { $0.parent == parentJointName && $0.child == childJointName })
     }
+    
 }

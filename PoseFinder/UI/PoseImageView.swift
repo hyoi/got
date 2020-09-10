@@ -51,6 +51,16 @@ class PoseImageView: UIImageView {
     /// - parameters:
     ///     - poses: An array of detected poses.
     ///     - frame: The image used to detect the poses and used as the background for the returned image.
+    
+    
+    func got(poses:Array<Any>)-> Array<Any>{
+
+        
+        return poses
+    }
+    
+    
+    
     func show(poses: [Pose], on frame: CGImage) {
         let dstImageSize = CGSize(width: frame.width, height: frame.height)
         let dstImageFormat = UIGraphicsImageRendererFormat()
@@ -69,6 +79,7 @@ class PoseImageView: UIImageView {
                     let jointA = pose[segment.jointA]
                     let jointB = pose[segment.jointB]
 
+                    
                     guard jointA.isValid, jointB.isValid else {
                         continue
                     }
