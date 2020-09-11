@@ -13,6 +13,7 @@ extension CGPoint {
         self.init(x: CGFloat(cell.xIndex), y: CGFloat(cell.yIndex))
     }
 
+    //このポイントと別のポイントの間の2乗距離を計算して返します。
     /// Calculates and returns the squared distance between this point and another.
     func squaredDistance(to other: CGPoint) -> CGFloat {
         let diffX = other.x - x

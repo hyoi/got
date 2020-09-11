@@ -9,6 +9,7 @@ import UIKit
 
 @IBDesignable
 class PoseImageView: UIImageView {
+    
 
     /// A data structure used to describe a visual connection between two joints.
     struct JointSegment {
@@ -51,13 +52,6 @@ class PoseImageView: UIImageView {
     /// - parameters:
     ///     - poses: An array of detected poses.
     ///     - frame: The image used to detect the poses and used as the background for the returned image.
-    
-    
-    func got(poses:Array<Any>)-> Array<Any>{
-
-        
-        return poses
-    }
     
     
     

@@ -9,8 +9,14 @@ The implementation of the application's view controller, responsible for coordin
 import AVFoundation
 import UIKit
 import VideoToolbox
+import CoreGraphics
+
+
+
 
 class ViewController: UIViewController {
+    
+    
     /// The view the controller uses to visualize the detected poses.
     @IBOutlet private var previewImageView: PoseImageView!
 
@@ -86,11 +92,22 @@ class ViewController: UIViewController {
 
         algorithm = selectedAlgorithm
     }
+    func unchi(){
+        print(PoseNetOutput.confidence(multiArrayIndex()))
+    }
+    
 }
+
+//func unchi (Pose:Dictionary<String, Double>){
+  //  print(Pose.init(joints: [Joint.Name : Joint], confidence: Double))
+//}
+
 
 // MARK: - Navigation
 
 extension ViewController {
+   
+
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         guard let uiNavigationController = segue.destination as? UINavigationController else {
             return
@@ -111,6 +128,7 @@ extension ViewController {
     }
 }
 
+
 // MARK: - ConfigurationViewControllerDelegate
 
 extension ViewController: ConfigurationViewControllerDelegate {
@@ -128,6 +146,8 @@ extension ViewController: ConfigurationViewControllerDelegate {
 // MARK: - VideoCaptureDelegate
 
 extension ViewController: VideoCaptureDelegate {
+
+          
     func videoCapture(_ videoCapture: VideoCapture, didCaptureFrame capturedImage: CGImage?) {
         guard currentFrame == nil else {
             return
@@ -164,4 +184,12 @@ extension ViewController: PoseNetDelegate {
 
         previewImageView.show(poses: poses, on: currentFrame)
     }
+    func confidence(){
+         
+        
+    }
+    
 }
+
+
+

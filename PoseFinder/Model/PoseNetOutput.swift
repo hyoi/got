@@ -117,6 +117,16 @@ struct PoseNetOutput {
 // MARK: - Utility and accessor methods
 
 extension PoseNetOutput {
+
+    ///指定されたグリッドセルでの特定のジョイントタイプの位置を計算して返します。
+        ///
+        ///ジョイントの位置は、yとxのインデックスにモデルの出力ストライドを掛けて計算されます
+        ///さらに、PoseNetモデルの `offsets`配列にエンコードされた関連するオフセット。
+        ///
+        /// - パラメーター：
+        ///-jointName： `offsets`配列のインデックスに使用されるクエリジョイント。
+        ///-セル：指定されたジョイント名の「オフセット」出力の座標。
+        ///-戻り値：指定したジョイントおよびグリッドセルの計算された位置。
     /// Calculates and returns the position for a given joint type at the specified grid cell.
     ///
     /// The joint's position is calculated by multiplying the y and x indices by the model's output stride
@@ -138,7 +148,11 @@ extension PoseNetOutput {
 
         return jointPosition
     }
-
+    ///指定された位置のセルを返します。
+    ///
+    /// - パラメーター：
+    ///-位置：インデックスにマップする位置。
+    ///-戻り値：マップされたセルインデックス。
     /// Returns the cell for a given position.
     ///
     /// - parameters:
@@ -158,6 +172,15 @@ extension PoseNetOutput {
         return Cell(yIndex, xIndex)
     }
 
+    ///指定したセルインデックスにあるジョイントに関連付けられたオフセットを返します。
+    ///
+    ///垂直方向の位置[[jointName、cell.yIndex、cell.xIndex] `にある` offsets`配列を照会します
+    ///コンポーネントと `[jointName + <関節の数>、cell.yIndex、cell.xIndex]`
+    ///水平コンポーネント。
+    ///
+    /// - パラメーター：
+    ///-jointName： `rawValue`が` offsets`配列の最初の次元のインデックスとして使用されるジョイント名。
+    ///-セル：指定されたジョイント名の「オフセット」出力の座標。
     /// Returns the associated offset for a joint at the specified cell index.
     ///
     /// Queries the `offsets` array at position `[jointName, cell.yIndex, cell.xIndex]` for the vertical
@@ -167,6 +190,7 @@ extension PoseNetOutput {
     /// - parameters:
     ///     - jointName: Joint name whose `rawValue` is used as the index of the first dimension of the `offsets` array.
     ///     - cell: The coordinates in the `offsets` output for the given joint name.
+    
     func offset(for jointName: Joint.Name, at cell: Cell) -> CGVector {
         // Create the index for the y and x component of the offset.
         let yOffsetIndex = [jointName.rawValue, cell.yIndex, cell.xIndex]
@@ -175,9 +199,19 @@ extension PoseNetOutput {
         // Obtain y and x component of the offset from the offsets array.
         let offsetY: Double = offsets[yOffsetIndex].doubleValue
         let offsetX: Double = offsets[xOffsetIndex].doubleValue
-
+print("Xは",xOffsetIndex,"が",offsetX)
+print("Yは",yOffsetIndex,"が",offsetY)
+      
         return CGVector(dx: CGFloat(offsetX), dy: CGFloat(offsetY))
     }
+    ///指定されたインデックスのジョイントに関連付けられた信頼度を返します。
+    ///
+    ///ジョイントの位置[`jointName、index.y、index.x]`にある `heatmap`配列を照会します
+    ///関連する信頼値。
+    ///
+    /// - パラメーター：
+    ///-jointName： `rawValue`が` heatmap`配列の最初の次元のインデックスとして使用されるジョイント名。
+    ///-セル：特定のジョイント名の「ヒートマップ」出力の座標。
 
     /// Returns the associated confidence for a joint at the specified index.
     ///
@@ -187,11 +221,24 @@ extension PoseNetOutput {
     /// - parameters:
     ///     - jointName: Joint name whose `rawValue` is used as the index of the first dimension of the `heatmap` array.
     ///     - cell: The coordinates in `heatmap` output for the given joint name.
+    
+    
+    
+    
     func confidence(for jointName: Joint.Name, at cell: Cell) -> Double {
         let multiArrayIndex = [jointName.rawValue, cell.yIndex, cell.xIndex]
+        
+        print("マルチアレイインデックスは、",multiArrayIndex)
         return heatmap[multiArrayIndex].doubleValue
     }
 
+   
+    ///指定されたエッジとインデックスの前方変位ベクトルを返します。
+        ///
+        /// - パラメーター：
+        ///-edgeIndex： `forwardDisplacementMap`配列の最初の次元のインデックス。
+        ///-セル：指定されたエッジの「forwardDisplacementMap」出力の座標。
+        ///-戻り値：インデックス「yIndex」と「xIndex」での「エッジ」の変位ベクトル。
     /// Returns the forward displacement vector for the specified edge and index.
     ///
     /// - parameters:
@@ -233,6 +280,7 @@ extension PoseNetOutput {
 
 extension MLFeatureProvider {
     func multiArrayValue(for feature: PoseNetOutput.Feature) -> MLMultiArray? {
+      
         return featureValue(for: feature.rawValue)?.multiArrayValue
     }
 }
@@ -241,6 +289,7 @@ extension MLFeatureProvider {
 
 extension MLMultiArray {
     subscript(index: [Int]) -> NSNumber {
+       
         return self[index.map { NSNumber(value: $0) } ]
     }
 }

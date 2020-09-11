@@ -24,7 +24,6 @@ extension PoseBuilder {
             configure(joint: joint)
         }
         
-        print("うんちはこれ",unchi)
         //ポーズの信頼度を計算して割り当てます。
         // Compute and assign the confidence for the pose.
         pose.confidence = pose.joints.values

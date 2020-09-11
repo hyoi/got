@@ -14,6 +14,7 @@ protocol PoseNetDelegate: AnyObject {
 }
 
 class PoseNet {
+  
     /// The delegate to receive the PoseNet model's outputs.
     weak var delegate: PoseNetDelegate?
 

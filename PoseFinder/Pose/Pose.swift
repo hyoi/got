@@ -7,6 +7,7 @@ Implementation details of a structure used to describe a pose.
 
 import CoreGraphics
 
+
 struct Pose {
     /// 2つのジョイント間の親子関係を記述するために使用される構造。
     /// A structure used to describe a parent-child relationship between two joints.
@@ -73,13 +74,14 @@ struct Pose {
     ///このポーズに関連付けられた信頼スコア。
     /// The confidence score associated with this pose.
     var confidence: Double = 0.0
-
+    ///指定した名前のジョイントにアクセスします。
     /// Accesses the joint with the specified name.
     subscript(jointName: Joint.Name) -> Joint {
         get {
             assert(joints[jointName] != nil)
             return joints[jointName]!
         }
+        
         set {
             joints[jointName] = newValue
         }
@@ -117,3 +119,4 @@ struct Pose {
     }
     
 }
+

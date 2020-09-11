@@ -11,6 +11,7 @@ import Vision
 
 /// - Tag: PoseNetInput
 class PoseNetInput: MLFeatureProvider {
+    
     /// The name of the PoseNet model's input feature.
     ///
     /// You can see all the model's inputs and outputs, their names, and other information by selecting
